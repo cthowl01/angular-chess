@@ -318,17 +318,11 @@ import {Howl, Howler} from 'howler';
           currentPiece = id[0] + id[1];
         }
       
-        // Temporary; Check for implemented piece moves
-          // if (currentPiece === 'K' || currentPiece ==='R' || currentPiece ==='B' || currentPiece ==='Q'
-          //     || currentPiece === 'wP' || currentPiece === 'bP' || currentPiece ==='N') {
-      
           let arr = [];
       
           let aMap = new Map();
       
           arr.push([x, y]);
-      
-          // Pass x/y coords, array, and number of spaces the piece can move
       
           this.iterations = this.receivedBoard.getNumMoves().get(id[1]);
           
@@ -383,7 +377,7 @@ import {Howl, Howler} from 'howler';
           if (currentPiece === 'wP' || currentPiece === 'bP') {
 
               // First, get the straightforward north or south value for the current pawn
-              var straight = this.receivedBoard.getInitialMoves().get(currentPiece);
+              var straight: number[] = this.receivedBoard.getInitialMoves().get(currentPiece);
              
               // For the directions adjacent to straight direction (NW and NE for northbound; SW and SE for southbound):
               // if the square is occupied by an opposite color piece then the square can be highlighted as a valid move
@@ -468,7 +462,7 @@ import {Howl, Howler} from 'howler';
           }
           
           // Ensure x,y coords are on the 8x8 board
-          validCoords(x: number,y: number) {
+          validCoords(x: number, y: number) {
             return (this.inRangeExclusive(x, 0, 9) && this.inRangeExclusive(y, 0, 9)) ? true : false;
           }
           
@@ -590,8 +584,8 @@ import {Howl, Howler} from 'howler';
           var tempIterations = this.iterations;
         
           // Hardcoded 8 is the number of possible directions a piece could move
-        
           for (let i=0; i < 8; i++){
+
               // Look at the key for each member of the Map
               let key = validMoves[i]; // e.g. for R directions[0] = 1
         
@@ -622,11 +616,12 @@ import {Howl, Howler} from 'howler';
                       moveArray.push([newX, newY]);
                     }
         
-                    // From key, get the direction as a letter
-                    let newKey = this.receivedBoard.getDirections().get(key); // e.g. for 1, directions.get[1] = 'N'
+                    // From key, get the direction as a letter e.g. for 1, directions.get[1] = 'N'
+                    let newKey = this.receivedBoard.getDirections().get(key);
         
-                    // From letter, lookup the direction changes
-                    let coords = this.receivedBoard.getDirChanges().get(newKey); // e.g. for 'N', dirChanges.get('N') = [0, -1] (no x change, up one)
+                    // From letter, lookup the direction changes 
+                    //e.g. for 'N', dirChanges.get('N') = [0, -1] (no x change, up one)
+                    let coords = this.receivedBoard.getDirChanges().get(newKey);
         
                     while(!flag) {
         
@@ -711,8 +706,6 @@ import {Howl, Howler} from 'howler';
 
         ev.preventDefault();
 
-        var data = ev.dataTransfer.getData("text");
-      
         let originalSquareIndex = null,
             originalSquare: Square = null,
             newSquareIndex = null,
@@ -758,7 +751,6 @@ import {Howl, Howler} from 'howler';
       
           newSquare = (this.receivedBoard.getSquares())[newSquareIndex];
       
-          // Changed from squares to indices 12/21/19
           if (originalSquareIndex === newSquareIndex || originalSquareIndex === "") {
       
             // Return highlighted squares to their original value
@@ -772,7 +764,7 @@ import {Howl, Howler} from 'howler';
       
           let isValid = false;
       
-          if (!this.receivedBoard.getOriginalSquareId().match('N')) {
+          
           // if newSquare's coordinates are in the highlighted array, set isValid to true
           for (var i = 0; i < this.receivedBoard.getCurrentHighlights().length; i++) {
             if ( this.receivedBoard.getCurrentHighlights()[i] === this.convertXYToI(newSquare.getLocation().getX(), newSquare.getLocation().getY())) {
@@ -780,29 +772,15 @@ import {Howl, Howler} from 'howler';
             }
             
           }
-          if (isValid === false) {
-            // Play sound effect
-            var sound = new Howl({
-              src: ['assets/audio/buzzer.mp3']
-            });
+          // if (isValid === false) {
+          //   // Play sound effect
+          //   var sound = new Howl({
+          //     src: ['assets/audio/buzzer.mp3']
+          //   });
             
-            sound.play();
-          } 
-        } else if (this.receivedBoard.getOriginalSquareId().match('N')) {
-      
-            let abs_x: number = Math.abs(originalSquare.getLocation().getX() - newSquare.getLocation().getX());
-            let abs_y: number = Math.abs(originalSquare.getLocation().getY() - newSquare.getLocation().getY());
-      
-            // Make sure knights move one square in one direction and two squares in another
-            if (abs_x <= 2 && abs_x > 0 && abs_y <= 2 && abs_y > 0
-                && (Math.abs(abs_x-abs_y) === 1)) {
-              // Valid drop location
-              isValid = true;
-            } 
-        } else {
-            console.log("Nope!");
-            
-        }
+          //   console.log("buzz!");
+          //   sound.play();
+          // } 
       
           if (isValid === true) {
             
@@ -829,13 +807,21 @@ import {Howl, Howler} from 'howler';
             // Return highlighted squares to their original value
             this.unhighlight(ev);
           } else {
+
+            // Play sound effect
+            var sound = new Howl({
+              src: ['assets/audio/buzzer.mp3']
+            });
+            
+            console.log("buzz!");
+            sound.play();
       
             // Return highlighted squares to their original value
             this.unhighlight(ev);
             return;
           }
       
-        // If there is an existing image, assign it to the appropriate discard area
+        // If there is an existing image:
         if (capturedImage != "") {
 
            // Play sound effect
@@ -843,6 +829,7 @@ import {Howl, Howler} from 'howler';
               src: ['assets/audio/ring.wav']
             });
             
+            console.log("ring!");
             sound.play();
   
           // Based on color of old image, assign to appropriate div
@@ -872,10 +859,10 @@ import {Howl, Howler} from 'howler';
         // Reset original square index
         this.receivedBoard.setOriginalSquareId("");
 
+        // Emit changes to parent component
         this.receivedSquaresChange.emit(this.receivedBoard.getSquares());
         this.receivedHighlightsChange.emit(this.receivedBoard.getCurrentHighlights());
 
-        
         // Check for check?
 
       }
