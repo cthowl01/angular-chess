@@ -1,0 +1,15 @@
+<h1 mat-dialog-title>Hi</h1>
+<div mat-dialog-content>
+  <p>Enter User 1 Name:</p>
+  <mat-form-field>
+    <input matInput [(ngModel)]="data.user1">
+  </mat-form-field>
+  <p>Enter User 2 Name:</p>
+  <mat-form-field>
+    <input matInput [(ngModel)]="data.user2">
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button (click)="onNoClick()">Cancel</button>
+  <button mat-raised-button [mat-dialog-close]="data" cdkFocusInitial>Save</button>
+</div>

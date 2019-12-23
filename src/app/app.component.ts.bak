@@ -1,0 +1,194 @@
+import { Component } from '@angular/core';
+import Board from '../assets/Board';
+import User from '../assets/User';
+import Location from '../assets/Location';
+import Square from '../assets/Square';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+
+export class AppComponent {
+
+  firstDiscardArea = "white-discards";
+  secondDiscardArea = "black-discards";
+  firstUser = "user-1";
+  secondUser = "user-2";
+  generateButton = "Generate Board";
+  flipButton = "Flip Board";
+
+  ind_arr = [];
+  highlighted = [];
+
+  originalCautionClassName = "";
+
+  chessImagePath = "assets/img/";
+
+  checkersImagePath = "assets/img/";
+
+  chessImageExtension = ".png";
+
+  checkersImageExtension = ".png";
+
+  game = "CHESS";
+
+  user1 = new User("Chris", "White");
+  user2 = new User("Danielle", "Black");
+
+  currentUser = this.user1;
+
+  board = new Board();
+
+  printUserDisplay() {
+    let user1Div = document.getElementsByClassName("user-1");
+    console.log("user1Div is " + user1Div);
+    let user2Div = document.getElementsByClassName("user-2");
+    let user1Child = <HTMLElement> user1Div[0].childNodes[0];
+    let user2Child = <HTMLElement> user2Div[0].childNodes[0];
+    
+    user1Child.innerHTML = (this.currentUser === this.user1? "CURRENT - ": "") + this.user1.getName() + " playing " + this.user1.getColor() + " pieces";
+    user2Child.innerHTML = (this.currentUser === this.user2? "CURRENT - ": "") + this.user2.getName() + " playing " + this.user2.getColor() + " pieces";
+    
+  }
+
+  createBoard(event){
+    console.log("Create Board called");
+    var container = document.querySelector('.container');
+      var flip = false;
+      var x = 1,
+          y = 1;
+
+      for (var i=0;i<64;i++) {
+        // For each row, alternate between starting colors
+        if (i % 8 == 0) {
+          flip = !flip;
+        }
+
+        var squareElement = this.createSquareElement(flip, i, x, y);
+        container.appendChild(squareElement);
+
+        // Set key-value pair for location-occupant in the board.squares Map:
+        // board.squares.set(new Location(x ,y), squareElement.childNodes[0].id);
+        var occpt = <HTMLElement> squareElement.childNodes[0];
+        var square = new Square(occpt.id, new Location(x ,y));
+        this.board.addSquare(square);
+        x++;
+        if ((i+1) % 8 == 0) {
+          x = 1;
+          y++;
+        }
+      }
+
+      this.printUserDisplay();
+    }
+
+  flipBoard(event){
+    console.log("Flip Board called");
+  }
+
+  createPiece(initialPiece, x, y, color, piece) {
+    initialPiece.setAttribute("id",color + piece +x);
+    initialPiece.setAttribute("src",this.chessImagePath + color + piece + this.chessImageExtension);
+    return initialPiece;
+  }
+
+
+  createSquareElement(flip, i, x, y) {
+    var square = document.createElement('div');
+  
+    //square.setAttribute("ondrop","drop(event)");
+    //square.setAttribute("ondragover","allowDrop(event)");
+  
+    var initialPiece = document.createElement('img');
+  
+    if (this.game === "CHECKERS") {
+      if ((y === 1 || y === 3) && (x % 2 === 0) || ((y === 2) && (x % 2 === 1))) {
+        initialPiece.setAttribute("id","bP"+x);
+        initialPiece.setAttribute("src",this.checkersImagePath + "black_checker.png");
+      }
+  
+      if ((y === 6 || y === 8) && (x % 2 === 1) || (y === 7) && (x % 2 === 0)) {
+        initialPiece.setAttribute("id","rP"+x);
+        initialPiece.setAttribute("src",this.checkersImagePath + "red_checker.png");
+      }
+    }
+  
+    let color = '';
+  
+    if (this.game === "CHESS") {
+  
+        if (y < 3) {
+          color = 'b';
+        } else if (y > 6) {
+          color = 'w';
+        } 
+  
+        if (color) {
+          if (y === 2 || y === 7) {
+            initialPiece = this.createPiece(initialPiece, x, y, color, 'P');
+          } else if (x === 1 || x === 8) {
+            initialPiece = this.createPiece(initialPiece, x, y, color, 'R');
+          } else if (x === 2 || x === 7) {
+            initialPiece = this.createPiece(initialPiece, x, y, color, 'N');
+          } else if (x === 3 || x === 6) {
+            initialPiece = this.createPiece(initialPiece, x, y, color, 'B');
+          } else if (x === 4) {
+            initialPiece = this.createPiece(initialPiece, x, y, color, 'Q');
+          } else {
+            initialPiece = this.createPiece(initialPiece, x, y, color, 'K');
+          } 
+        }
+  
+    }
+  
+    // initialPiece.setAttribute("draggable","true");
+    // initialPiece.setAttribute("ondragstart","drag(event)");
+    // initialPiece.setAttribute("onmouseover","isMovable(event)");
+    // initialPiece.setAttribute("onmouseout","clearCaution(event)");
+  
+    var firstColor = flip ? 'brownSquare':'whiteSquare';
+    var secondColor = flip ? 'whiteSquare':'brownSquare';
+  
+    square.className = 'square ' + ((i % 2 == 0) ? firstColor : secondColor);
+  
+    square.appendChild(initialPiece);
+  
+    return square;
+  }
+
+  
+  allowDrop(event) {
+    event.preventDefault();
+  }
+
+  drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    if (this.isMovable(ev)) {
+        //this.highlightAvailableMoves(ev);
+    } else {
+      console.log("Select another piece");
+      return;
+    }
+  }
+  
+  isMovable(ev) {
+    // Ensure the piece in question's color matches the current user's color
+    if ((this.currentUser.getColor() === "White" && ev.target.id.match('b')) || 
+        (this.currentUser.getColor() === "Black" && ev.target.id.match('w'))) {
+      
+      // See if this should be "origClassName" instead
+      this.originalCautionClassName = ev.target.className; 
+      ev.target.className = "square yellowSquare";
+      return false;
+    }
+  
+    return true;
+  }
+  
+  clearCaution(ev) {
+    ev.currentTarget.className = this.originalCautionClassName;
+  }
+
+}

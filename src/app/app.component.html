@@ -1,0 +1,34 @@
+    <app-button (onClick)="createBoard($event)" [label]="generateButton"></app-button>
+    <app-button (onClick)="flipBoard(this.receivedBoard)" [label]="flipButton" [receivedBoard]="brd"></app-button>
+    <app-button (onClick)="openDialog($event)" [label]="userButton"></app-button>
+    <div class="flex-container">
+      <div class="column">
+          <display [user]="firstUser"></display>
+          <div class="discards">
+            <div class="white-discards">
+                <div *ngFor="let discard of brd.getWhiteDiscards()">
+                    <discardarea [src]="discard" [cn]="firstDiscardArea" [receivedBoard]="brd">
+                    </discardarea>
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="container">
+          <div *ngFor="let square of brd.getSquares()">
+            <app-board [cn]="square.className" [id]="square.occupant.id" 
+              [src]="square.occupant.src" [receivedBoard]="brd">
+            </app-board>
+          </div> 
+      </div>
+      <div class="column">
+        <display [user]="secondUser"></display>
+        <div class="discards">
+            <div class="black-discards">
+                <div *ngFor="let discard of brd.getBlackDiscards()">
+                    <discardarea [src]="discard" [cn]="secondDiscardArea" [receivedBoard]="brd">
+                    </discardarea>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>

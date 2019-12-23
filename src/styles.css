@@ -1,0 +1,58 @@
+/* You can add global styles to this file, and also import other style files */
+
+body {
+    height: 100%;
+    width: 100%;
+    margin: auto;
+  }
+  
+  .flex-container {
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .container {
+    width: 240px;
+    margin: auto;
+    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid black;
+  }
+  
+  .column {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .square {
+    width: 80px;
+    height: 80px;
+    text-align: center;
+    line-height: 75px;
+    font-size: 30px;
+  }
+  
+  .brownSquare {
+    background-color: brown;
+  }
+  
+  .whiteSquare {
+    background-color: white;
+  }
+  
+  .greenSquare {
+    background-color: green;
+  }
+  
+  .yellowSquare {
+    background-color: yellow;
+  }
+
+  h1{
+    font-family:Arial, Helvetica, sans-serif;
+  }
+
+  h2{
+    font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif
+  }

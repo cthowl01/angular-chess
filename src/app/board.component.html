@@ -1,0 +1,6 @@
+<div (drop)="drop($event)" (dragover)="allowDrop($event)" class="{{ cn }}">
+    <img id="{{ id }}" src = "{{ src }}" draggable="true" 
+    (drag)="drag($event)" (onOver)="isMovable($event)"
+    (onOut)="clearCaution($event)" (receivedSquaresChange)="receiveSquares($event)"
+    (receivedHighlightsChange)="receiveHighlights($event)" (receivedInitialMovesChange)="receiveInitialMoves($event)">
+</div>
