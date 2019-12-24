@@ -24,8 +24,6 @@ fillDirections() follows fillInitial() for pieces that can move more than one pi
 
 unhighlight() returns the yellow and green squares to their original color (which is calculated based on the sum of the x and y coordinates).
 
-
-
 There are three buttons presented when the application is started:
 -Generate Board
 -Flip Board
