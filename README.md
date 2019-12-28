@@ -8,6 +8,7 @@ The Angular module bootstraps the App component, which serves as the parent to a
 
 The Board component contains the data that dictates how the various chess pieces are allowed to interact with the board and with other pieces. Maps are used to allow efficient lookups. Some of the data changes throughout the game (e.g. the number of moves a pawn can make), so setters are used to update the private data.
 
+
 Methods of note:
 
 createSquareElement() determines the initial occupying piece based on the coordinates and is called by createBoard().
