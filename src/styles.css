@@ -56,3 +56,13 @@ body {
   h2{
     font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif
   }
+
+  .game-radio-group {
+    display: flex;
+    flex-direction: column;
+    margin: 15px 0;
+  }
+  
+  .game-radio-button {
+    margin: 5px;
+  }

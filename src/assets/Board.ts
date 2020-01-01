@@ -8,18 +8,20 @@ export class Board {
       private dirChanges?: Map<string, number[]>,
       private initialMoves?: Map<string, number[]>,
       private pawnMoves?: Map<string, number>,
+      private checkerPieces?: Map<string, number>,
       private knightMoves?: number[][],
       private squares?: Square[],
       private currentHighlights?: number[],
       private users?: User[],
       private originalSquareId?: string,
       private whiteDiscards?: string[],
-      private blackDiscards?: string[]) {
+      private blackDiscards?: string[],
+      private redDiscards?: string[]) {
       this.types = new Map([[ 'K', 'King' ],[ 'Q', 'Queen' ], [ 'B', 'Bishop' ], [ 'N', 'Knight' ], 
-                            [ 'R', 'Rook' ], [ 'P', 'Pawn' ]]);
+                            [ 'R', 'Rook' ], [ 'P', 'Pawn' ], [ 'C', 'Checker' ]]);
   
       this.numMoves = new Map([[ 'K', 1 ],[ 'Q', 7 ], [ 'B', 7 ], [ 'N', 1 ], 
-                            [ 'R', 7 ], [ 'P', 1 ]]);
+                            [ 'R', 7 ], [ 'P', 1 ], [ 'C', 1 ], [ 'D', 1 ]]);
   
       this.directions = new Map([[ 0, "NW" ], [ 1, "N" ], [ 2, "NE" ], [ 3, "W" ], 
                                  [ 4, "E" ], [ 5, "SW" ], [ 6, "S" ], [ 7, "SE" ]]);
@@ -28,20 +30,36 @@ export class Board {
                                 [ "E", [1, 0] ], [ "SW", [-1, 1] ], [ "S", [0, 1] ], [ "SE", [1, 1] ]]);
   
       this.initialMoves = new Map([ ['K', [0,1,2,3,4,5,6,7]], ['Q', [0,1,2,3,4,5,6,7]], 
-                                  ['R', [1,3,4,6]], ['B', [0,2,5,7]], ['wP', [1]], ['bP', [6]] ]);
+                                  ['R', [1,3,4,6]], ['B', [0,2,5,7]], ['wP', [1]], ['bP', [6]] 
+                                  , ['rC', [0,2]], ['bC', [5,7]], 
+                                  ['rD', [0,2,5,7]], ['bD', [0,2,5,7]]]);
   
       this.pawnMoves = new Map([ ['wP1', 2], ['wP2', 2], ['wP3', 2], ['wP4', 2], 
                                   ['wP5', 2], ['wP6', 2], ['wP7', 2], ['wP8', 2],         
                                   ['bP1', 2], ['bP2', 2], ['bP3', 2], ['bP4', 2],
                                   ['bP5', 2], ['bP6', 2], ['bP7', 2], ['bP8', 2] ]);
+
+      this.checkerPieces = new Map([ ['bC2', 1], ['bC4', 1], ['bC6', 1], ['bC8', 1],
+                                     ['bC9', 1], ['bC11', 1], ['bC13', 1], ['bC15', 1],
+                                     ['bC18', 1], ['bC20', 1], ['bC22', 1], ['bC24', 1],
+                                     ['rC41', 1], ['rC43', 1], ['rC45', 1], ['rC47', 1], 
+                                     ['rC50', 1], ['rC52', 1], ['rC54', 1], ['rC56', 1], 
+                                     ['rC57', 1], ['rC59', 1], ['rC61', 1], ['rC63', 1],
+                                     ['bD2', 1], ['bD4', 1], ['bD6', 1], ['bD8', 1],
+                                     ['bD9', 1], ['bD11', 1], ['bD13', 1], ['bD15', 1],
+                                     ['bD18', 1], ['bD20', 1], ['bD22', 1], ['bD24', 1],
+                                     ['rD41', 1], ['rD43', 1], ['rD45', 1], ['rD47', 1], 
+                                     ['rD50', 1], ['rD52', 1], ['rD54', 1], ['rD56', 1], 
+                                     ['rD57', 1], ['rD59', 1], ['rD61', 1], ['rD63', 1]] );  
       this.knightMoves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2],
                           [1, -2], [1, 2], [2, -1], [2, 1]  ];
       this.squares = [];
       this.currentHighlights = [];
-      this.users = [ (new User("Chris", "White", true)), (new User("Danielle", "Black", false))];
+      this.users = [ (new User("Chris", "Red", true)), (new User("Danielle", "Black", false))];
       this.originalSquareId = "";
       this.whiteDiscards = [];
       this.blackDiscards = [];
+      this.redDiscards = [];
     }
 
     getDirChanges() {
@@ -62,6 +80,10 @@ export class Board {
 
     getPawnMoves() {
       return this.pawnMoves;
+    }
+
+    getCheckerPieces() {
+      return this.checkerPieces;
     }
 
     getKnightMoves() {
@@ -90,6 +112,10 @@ export class Board {
 
     getBlackDiscards() {
       return this.blackDiscards;
+    }
+
+    getRedDiscards() {
+      return this.redDiscards;
     }
 
     setSquares(squares: Square[]) {
@@ -144,6 +170,10 @@ export class Board {
 
     setBlackDiscards(img: string) {
       this.getBlackDiscards().push(img);
+    }
+
+    setRedDiscards(img: string) {
+      this.getRedDiscards().push(img);
     }
   }
 

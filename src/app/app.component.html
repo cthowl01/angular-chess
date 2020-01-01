@@ -1,6 +1,7 @@
     <app-button (onClick)="createBoard($event)" [label]="generateButton"></app-button>
     <app-button (onClick)="flipBoard(this.receivedBoard)" [label]="flipButton" [receivedBoard]="brd"></app-button>
-    <app-button (onClick)="openDialog($event)" [label]="userButton"></app-button>
+    <app-button (onClick)="openUserDialog($event)" [label]="userButton"></app-button>
+    <app-button (onClick)="openGameDialog($event)" [label]="gameButton"></app-button>
     <div class="flex-container">
       <div class="column">
           <display [user]="firstUser"></display>

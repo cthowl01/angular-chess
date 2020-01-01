@@ -4,6 +4,7 @@ import Square from '../assets/Square';
 import Board from '../assets/Board';
 import { BoardComponent } from './board.component';
 import { UserDialogComponent } from './userdialog.component';
+import { GameSelectionDialogComponent } from './gameselectiondialog.component';
 
 @Component({
   selector: 'app-root',
@@ -16,13 +17,14 @@ export class AppComponent {
   constructor(public dialog: MatDialog) {
   }
 
-  firstDiscardArea: string = "white-discards";
+  firstDiscardArea: string = "red-discards";
   secondDiscardArea: string = "black-discards";
   firstUser: string = "user-1";
   secondUser: string = "user-2";
   generateButton: string = "Generate Board";
   flipButton: string = "Flip Board";
   userButton: string = "Edit User Names";
+  gameButton: string = "Select Game Type";
 
   chessImagePath: string =  "assets/img/";
 
@@ -34,8 +36,8 @@ export class AppComponent {
 
   board = new BoardComponent();
 
-  openDialog() {
-    console.log("openDialog called");
+  openUserDialog() {
+    console.log("openUserDialog called");
     const dialogRef = this.dialog.open(UserDialogComponent, {
       width: '250px',
       data: {user1: this.brd.getUsers()[0].getName(), user2: this.brd.getUsers()[1].getName()}
@@ -47,6 +49,19 @@ export class AppComponent {
       this.brd.getUsers()[1].setName(result.user2);
 
       this.board.printUserDisplay(this.brd.getUsers());
+    });
+  }
+
+  openGameDialog() {
+    console.log("openGameDialog called");
+    const dialogRef = this.dialog.open(GameSelectionDialogComponent, {
+      width: '250px',
+      data: {selectedGame: "CHESS", games: ['CHESS', 'CHECKERS']}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      this.board.game = result.selectedGame;
     });
   }
 

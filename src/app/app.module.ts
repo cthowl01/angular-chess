@@ -10,9 +10,10 @@ import { ButtonComponent } from './button.component';
 import { SquareComponent } from './square.component';
 import { BoardComponent } from './board.component';
 import { UserDialogComponent } from './userdialog.component';
+import { GameSelectionDialogComponent } from './gameselectiondialog.component';
 import { FormsModule } from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
-
+import {MatRadioModule} from '@angular/material/radio';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import {MatInputModule} from '@angular/material/input';
     ButtonComponent,
     SquareComponent,
     BoardComponent,
-    UserDialogComponent
+    UserDialogComponent,
+    GameSelectionDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -30,10 +32,12 @@ import {MatInputModule} from '@angular/material/input';
     BrowserAnimationsModule,
     FormsModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    MatRadioModule
   ],
   entryComponents: [
-    UserDialogComponent
+    UserDialogComponent,
+    GameSelectionDialogComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

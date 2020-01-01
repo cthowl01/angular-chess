@@ -1,0 +1,18 @@
+<h1 mat-dialog-title>Game Selection</h1>
+<div mat-dialog-content>
+  <label id="game-radio-group-label">Select a Game:</label>
+  <div>
+  <mat-radio-group
+    aria-labelledby="game-radio-group-label"
+    class="game-radio-group"
+    [(ngModel)]="data.selectedGame">
+    <mat-radio-button class="game-radio-button" *ngFor="let game of data.games" [value]="game">
+      {{game}}
+    </mat-radio-button>
+  </mat-radio-group>
+</div>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button (click)="onNoClick()">Cancel</button>
+  <button mat-raised-button [mat-dialog-close]="data" cdkFocusInitial>Save</button>
+</div>

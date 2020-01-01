@@ -41,7 +41,7 @@ import {Howl, Howler} from 'howler';
     
       checkersImageExtension: string = ".png";
     
-      game: string = "CHESS";
+      game: string = "CHECKERS";
 
       userMoveDiv;
 
@@ -94,12 +94,16 @@ import {Howl, Howler} from 'howler';
             let id = '';
             let src = '';
 
-            if (piece != '') {
+            if (piece != 'C' && piece != '') {
                 id = color + piece + x;
-            }
+            } else if (piece != '') {
+                id = color + piece + String((y-1)*8 + x);
+            } 
 
-            if (piece != '') {
+            if (piece != 'C' && piece != '') {
                 src = this.chessImagePath + color + piece + this.chessImageExtension;
+            } else if (piece != '') {
+                src = this.checkersImagePath + color + piece + this.checkersImageExtension;
             }
 
             let newOccupant = new Occupant(id, src);
@@ -198,6 +202,23 @@ import {Howl, Howler} from 'howler';
                 this.createPiece(x, y, color, '');
               }
       
+        } else { // game = "CHECKERS"
+
+          if ((y === 1 || y === 3 || y === 7) && (x === 2 || x === 4 || x === 6 || x === 8)
+          || (y === 2 || y === 4 || y === 6 || y === 8) && (x === 1 || x === 3 || x === 5 || x === 7)) {
+              if (y < 4) {
+                color = 'b';
+              } else if (y > 5) {
+                color = 'r';
+              }
+            }
+              
+              if (color != '') {
+                  this.createPiece(x, y, color, 'C');
+              } else {
+                this.createPiece(x, y, color, '')
+              }
+
         }
       
         return;
@@ -218,8 +239,11 @@ import {Howl, Howler} from 'howler';
       isMovable(ev) {
           console.log("isMovable");
         // Ensure the piece in question's color matches the current user's color
-        if ((this.getCurrentUserColor() === "White" && ev.target.id.match('b')) || 
-            (this.getCurrentUserColor() === "Black" && ev.target.id.match('w'))) {
+        if (this.game === "CHESS" && (this.getCurrentUserColor() === "White" && ev.target.id.match('b')) || 
+            (this.getCurrentUserColor() === "Black" && ev.target.id.match('w')) ||
+            this.game === "CHECKERS" && (this.getCurrentUserColor() === "Red" && ev.target.id.match('b')) || 
+            (this.getCurrentUserColor() === "Black" && ev.target.id.match('r'))
+            ) {
 
             let index = this.lookupByID(ev.target.id);
 
@@ -288,13 +312,21 @@ import {Howl, Howler} from 'howler';
         lookupByNetXY(netX: number, netY: number) {
             let match = '';
             let coords = this.getXYFromNet(netX, netY);
-        
-            for (let i=0;i<this.receivedBoard.getSquares().length;i++) {
-            if (this.receivedBoard.getSquares()[i].getLocation().getX() === coords.getX() && 
-                    (this.receivedBoard.getSquares()[i].getLocation().getY() === coords.getY())) {
+
+            return this.getIndexFromXY(coords.getX(), coords.getY());
+            
+        }
+
+
+        getIndexFromXY(x: number, y: number) {
+
+          for (let i=0;i<this.receivedBoard.getSquares().length;i++) {
+            if (this.receivedBoard.getSquares()[i].getLocation().getX() === x && 
+                    (this.receivedBoard.getSquares()[i].getLocation().getY() === y)) {
                     return i;
                 }
             }
+
         }
 
       highlightAvailableMoves(ev, idtemp: string) {
@@ -317,6 +349,10 @@ import {Howl, Howler} from 'howler';
         if (currentPiece === 'P') {
           currentPiece = id[0] + id[1];
         }
+
+        if (currentPiece === 'C' || currentPiece === 'D') {
+          currentPiece = id[0] + id[1];
+        }
       
           let arr = [];
       
@@ -331,9 +367,14 @@ import {Howl, Howler} from 'howler';
             this.iterations = this.receivedBoard.getPawnMoves().get(id);
           }
 
+           // Add special logic to reassign value for checkers
+           if (currentPiece.length === 2 && (currentPiece[1] === 'C' || currentPiece[1] === 'C')) {
+            this.iterations = this.receivedBoard.getCheckerPieces().get(id);
+          }
+
           aMap = this.fillInitial(arr, currentPiece, id);
 
-          if (this.iterations > 1) {
+          if (this.iterations > 1 || id[1] === 'C' || id[1] === 'D') {
 
             if (id[1] === "P") {
               this.iterations = 1;
@@ -363,18 +404,11 @@ import {Howl, Howler} from 'howler';
 
               let oppositeColorMove = this.isOccupiedByOpposite(id, arr[i][0], arr[i][1]);
 
-              // var occupier = '';
-              // if (occupies) {
-              //     occupier = occupies.getId();
-              // }
-              // If the square isn't occupied OR if the occupying piece isn't the same color, the square can be highlighted
-              // if (!occupies || 
-              //     (this.whatOccupies(arr[i][0], arr[i][1]) && !(occupier.match(this.getCurrentUserColor()[0].toLowerCase()))))
               if (!occupies || oppositeColorMove )
                   temp_arr.push(arr[i]);
               } 
 
-          if (currentPiece === 'wP' || currentPiece === 'bP') {
+            if (currentPiece === 'wP' || currentPiece === 'bP') {
 
               // First, get the straightforward north or south value for the current pawn
               var straight: number[] = this.receivedBoard.getInitialMoves().get(currentPiece);
@@ -486,9 +520,13 @@ import {Howl, Howler} from 'howler';
               + coords.getX() + ", " + coords.getY() + ")";
             
             // If piece is captured, add that to HTML
-            if(capturedPiece!='') {
+            if(capturedPiece!='' && this.game === "CHESS") {
               this.userMoveDiv[0].childNodes[0].innerHTML += "<br>Captured: " 
               + (this.getCurrentUserColor()==="White"? "Black" : "White")
+              + " " + this.receivedBoard.getTypes().get(capturedPiece[1]);
+            } else if (capturedPiece!='') {
+              this.userMoveDiv[0].childNodes[0].innerHTML += "<br>Captured: " 
+              + (this.getCurrentUserColor()==="Red"? "Black" : "Red")
               + " " + this.receivedBoard.getTypes().get(capturedPiece[1]);
             }
             
@@ -514,7 +552,7 @@ import {Howl, Howler} from 'howler';
                   for (let i = popped[0]-1;  i <= popped[0] + 1; i++) {
           
                       // If both are in the range of valid coords and aren't the starting square, add to array
-                      if (this.inRangeExclusive(i, 0, 9) && this.inRangeExclusive(j, 0, 9) && !(i === popped[0] && j === popped[1])) {
+                      if (this.validCoords(i, j) && !(i === popped[0] && j === popped[1])) {
                         newMap.set(index, [[i,j]]);
                       }
                       // Increment index only if not on starting square
@@ -539,7 +577,9 @@ import {Howl, Howler} from 'howler';
                       if (!occupied) {
                         tempMap.set(validMoves[i], newMap.get(validMoves[i]));
                       } 
-                    } else {  // not pawn so always execute
+                    } 
+                    
+                    else {  // not pawn so always execute
                       tempMap.set(validMoves[i], newMap.get(validMoves[i]));
                     }
                 }
@@ -606,23 +646,38 @@ import {Howl, Howler} from 'howler';
                     let oppositeColorMove = this.isOccupiedByOpposite(id, newX, newY);
 
                     let occupied = this.whatOccupies(newX, newY);
-                    
-                    if(occupied) {
-                      if (oppositeColorMove) {
-                        moveArray.push([newX, newY]);
-                      } 
-                      flag = true;    
-                    } else {
-                      moveArray.push([newX, newY]);
-                    }
-        
+
                     // From key, get the direction as a letter e.g. for 1, directions.get[1] = 'N'
                     let newKey = this.receivedBoard.getDirections().get(key);
         
                     // From letter, lookup the direction changes 
                     //e.g. for 'N', dirChanges.get('N') = [0, -1] (no x change, up one)
                     let coords = this.receivedBoard.getDirChanges().get(newKey);
+                    
+                    if(occupied) {
+                      if (oppositeColorMove) {
+                        if (id[1] != 'C' && id[1] != 'D') {
+                          moveArray.push([newX, newY]);
+                        } else {
+                          let occupied = this.whatOccupies(newX + coords[0], newY + coords[1]);
+                          if (this.validCoords(newX + coords[0], newY + coords[1]) 
+                            && !occupied) {
+                            moveArray.push([newX + coords[0], newY + coords[1]]);
+                          }
+                          
+                        }
+                        
+                      } 
+                      flag = true;    
+                    } else {
+                      moveArray.push([newX, newY]);
+                    }
+
+                    if (id[1] === 'C' || id[1] === 'D') {
+                      flag = true;
+                    }
         
+            
                     while(!flag) {
         
                         // This logic will dictate that the move would be on the board,
@@ -726,8 +781,11 @@ import {Howl, Howler} from 'howler';
       
         console.log("Original square occupant is " + originalSquare.getOccupant().getId());
       
-        if ((originalSquare.getOccupant().getId().match('w') && this.getCurrentUserColor() === "Black") ||
-              (originalSquare.getOccupant().getId().match('b') && this.getCurrentUserColor() === "White")) {
+        if (this.game === "CHESS" && (originalSquare.getOccupant().getId().match('w') && this.getCurrentUserColor() === "Black") ||
+              (originalSquare.getOccupant().getId().match('b') && this.getCurrentUserColor() === "White")
+              || (this.game === "CHECKERS" && (originalSquare.getOccupant().getId().match('r') && this.getCurrentUserColor() === "Black") ||
+              (originalSquare.getOccupant().getId().match('b') && this.getCurrentUserColor() === "Red")))
+              {
       
           // Return highlighted squares to their original value
           this.unhighlight(ev);
@@ -772,15 +830,7 @@ import {Howl, Howler} from 'howler';
             }
             
           }
-          // if (isValid === false) {
-          //   // Play sound effect
-          //   var sound = new Howl({
-          //     src: ['assets/audio/buzzer.mp3']
-          //   });
-            
-          //   console.log("buzz!");
-          //   sound.play();
-          // } 
+          
       
           if (isValid === true) {
             
@@ -803,6 +853,34 @@ import {Howl, Howler} from 'howler';
             if (originalPiece[1] === "P") {
               this.receivedBoard.setPawnMoves(originalPiece, 1);
             } 
+
+            // Add logic for checker capture
+
+          if (originalPiece[1] === 'C' || originalPiece[1] === 'D') {
+            //  // Maybe average the x and y values of the original and new squares to determine
+              // the value of the captured piece
+
+              let newX = newSquare.getLocation().getX();
+              let originalX = originalSquare.getLocation().getX();
+
+              let newY = newSquare.getLocation().getY();
+              let originalY = originalSquare.getLocation().getY();
+
+                if ((Math.abs(originalX - newX) === 2) && (Math.abs(originalY - newY) === 2)) {
+                  let capturedX = (newX + originalX) / 2;
+                  let capturedY = (newY + originalY) / 2;
+
+                  let capturedSquareIndex = this.getIndexFromXY(capturedX, capturedY);
+
+                  capturedImage = this.receivedBoard.getSquares()[capturedSquareIndex].getOccupant().getSrc();
+   
+                  capturedPiece = this.receivedBoard.getSquares()[capturedSquareIndex].getOccupant().getId();
+
+                  // Lookup by coords, then set capturedImage and empty out original square
+                  this.receivedBoard.getSquares()[capturedSquareIndex].getOccupant().setId('');
+                  this.receivedBoard.getSquares()[capturedSquareIndex].getOccupant().setSrc('');
+                }
+            }
       
             // Return highlighted squares to their original value
             this.unhighlight(ev);
@@ -836,6 +914,9 @@ import {Howl, Howler} from 'howler';
           if(capturedImage.match('w')) {
             this.discard = document.getElementsByClassName("white-discards");
             this.receivedBoard.setWhiteDiscards(capturedImage);
+          } else if (capturedImage.match('r')) {
+            this.discard = document.getElementsByClassName("white-discards");
+            this.receivedBoard.setWhiteDiscards(capturedImage);
           } else {
             this.discard = document.getElementsByClassName("black-discards");
             this.receivedBoard.setBlackDiscards(capturedImage);
@@ -858,6 +939,26 @@ import {Howl, Howler} from 'howler';
 
         // Reset original square index
         this.receivedBoard.setOriginalSquareId("");
+
+        // Checkers: check if king is needed
+
+        if (this.game === "CHECKERS") {
+
+          let pieceColor = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getId()[0];
+
+          if ((newSquareIndex < 9  && pieceColor === 'r') || (newSquareIndex > 56  && pieceColor === 'b')) {
+              // Change C to D in id and in src
+              let originalId = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getId();
+              let newId = originalId.replace("C", "D");
+              this.receivedBoard.getSquares()[newSquareIndex].getOccupant().setId(newId);
+
+              let originalSrc = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getSrc();
+              let newSrc = originalSrc.replace("C", "D");
+              this.receivedBoard.getSquares()[newSquareIndex].getOccupant().setSrc(newSrc);
+              
+          }
+
+        }
 
         // Emit changes to parent component
         this.receivedSquaresChange.emit(this.receivedBoard.getSquares());
