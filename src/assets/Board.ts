@@ -2,7 +2,8 @@ import Square from '../assets/Square';
 import User from '../assets/User';
 
 export class Board {
-    constructor(private types?: Map<string, string>, 
+    constructor(private game?: string,
+      private types?: Map<string, string>, 
       private numMoves?: Map<string, number>, 
       private directions?: Map<number, string>,
       private dirChanges?: Map<string, number[]>,
@@ -14,9 +15,10 @@ export class Board {
       private currentHighlights?: number[],
       private users?: User[],
       private originalSquareId?: string,
-      private whiteDiscards?: string[],
-      private blackDiscards?: string[],
+      private firstDiscards?: string[],
+      private secondDiscards?: string[],
       private redDiscards?: string[]) {
+      this.game = "Chess";
       this.types = new Map([[ 'K', 'King' ],[ 'Q', 'Queen' ], [ 'B', 'Bishop' ], [ 'N', 'Knight' ], 
                             [ 'R', 'Rook' ], [ 'P', 'Pawn' ], [ 'C', 'Checker' ]]);
   
@@ -55,11 +57,14 @@ export class Board {
                           [1, -2], [1, 2], [2, -1], [2, 1]  ];
       this.squares = [];
       this.currentHighlights = [];
-      this.users = [ (new User("Chris", "Red", true)), (new User("Danielle", "Black", false))];
+      this.users = [ (new User("Chris", "White", true)), (new User("Danielle", "Black", false))];
       this.originalSquareId = "";
-      this.whiteDiscards = [];
-      this.blackDiscards = [];
-      this.redDiscards = [];
+      this.firstDiscards = [];
+      this.secondDiscards = [];
+    }
+
+    getGame() {
+      return this.game;
     }
 
     getDirChanges() {
@@ -106,16 +111,16 @@ export class Board {
       return this.originalSquareId;
     }
 
-    getWhiteDiscards() {
-      return this.whiteDiscards;
+    getFirstDiscards() {
+      return this.firstDiscards;
     }
 
-    getBlackDiscards() {
-      return this.blackDiscards;
+    getSecondDiscards() {
+      return this.secondDiscards;
     }
 
-    getRedDiscards() {
-      return this.redDiscards;
+    setGame(game) {
+      this.game = game;
     }
 
     setSquares(squares: Square[]) {
@@ -164,17 +169,14 @@ export class Board {
       this.currentHighlights = highlights;
     }
 
-    setWhiteDiscards(img: string) {
-      this.getWhiteDiscards().push(img);
+    setFirstDiscards(img: string) {
+      this.getFirstDiscards().push(img);
     }
 
-    setBlackDiscards(img: string) {
-      this.getBlackDiscards().push(img);
+    setSecondDiscards(img: string) {
+      this.getSecondDiscards().push(img);
     }
 
-    setRedDiscards(img: string) {
-      this.getRedDiscards().push(img);
-    }
   }
 
   export default Board;

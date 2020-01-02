@@ -1,16 +1,15 @@
-    <app-button (onClick)="createBoard($event)" [label]="generateButton"></app-button>
-    <app-button (onClick)="flipBoard(this.receivedBoard)" [label]="flipButton" [receivedBoard]="brd"></app-button>
-    <app-button (onClick)="openUserDialog($event)" [label]="userButton"></app-button>
-    <app-button (onClick)="openGameDialog($event)" [label]="gameButton"></app-button>
+    
     <div class="flex-container">
       <div class="column">
+        <app-button (onClick)="createBoard($event)" [label]="generateButton"></app-button>
+        <app-button (onClick)="flipBoard(this.receivedBoard)" [label]="flipButton" [receivedBoard]="brd"></app-button>
           <display [user]="firstUser"></display>
           <div class="discards">
-            <div class="white-discards">
-                <div *ngFor="let discard of brd.getWhiteDiscards()">
+            <div class="first-discards">
+                <span *ngFor="let discard of brd.getFirstDiscards()">
                     <discardarea [src]="discard" [cn]="firstDiscardArea" [receivedBoard]="brd">
                     </discardarea>
-                </div>
+                  </span>
             </div>
         </div>
       </div>
@@ -22,13 +21,15 @@
           </div> 
       </div>
       <div class="column">
+        <app-button (onClick)="openUserDialog($event)" [label]="userButton"></app-button>
+        <app-button (onClick)="openGameDialog($event)" [label]="gameButton" [receivedBoard]="brd"></app-button>
         <display [user]="secondUser"></display>
         <div class="discards">
-            <div class="black-discards">
-                <div *ngFor="let discard of brd.getBlackDiscards()">
+            <div class="second-discards">
+                <span *ngFor="let discard of brd.getSecondDiscards()">
                     <discardarea [src]="discard" [cn]="secondDiscardArea" [receivedBoard]="brd">
                     </discardarea>
-                </div>
+                </span>
             </div>
         </div>
       </div>

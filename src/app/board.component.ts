@@ -4,7 +4,7 @@ import User from '../assets/User';
 import Location from '../assets/Location';
 import Square from '../assets/Square';
 import Occupant from '../assets/Occupant';
-import {Howl, Howler} from 'howler';
+import {Howl} from 'howler';
 
     @Component({
       selector: 'app-board',
@@ -20,6 +20,7 @@ import {Howl, Howler} from 'howler';
       @Input() cn:string;
       @Input() id:string;
       @Input() src:string;
+      //@Input() game:string;
       @Input() receivedBoard:Board;
       
       @Output() receivedSquaresChange = new EventEmitter<Square []>();
@@ -40,8 +41,8 @@ import {Howl, Howler} from 'howler';
       chessImageExtension: string = ".png";
     
       checkersImageExtension: string = ".png";
-    
-      game: string = "CHECKERS";
+
+      //game: string = "Chess";
 
       userMoveDiv;
 
@@ -116,7 +117,7 @@ import {Howl, Howler} from 'howler';
             return;
         }
 
-      createBoard(){
+      createBoard(brd: Board){
         console.log("Create Board called");
 
         var x: number = 1,
@@ -124,7 +125,7 @@ import {Howl, Howler} from 'howler';
   
         for (var i=0;i<64;i++) {
 
-          this.createSquareElement(i, x, y);
+          this.createSquareElement(brd, i, x, y);
          
           // Iterate x and see if a new row is reached
           x++;
@@ -154,13 +155,21 @@ import {Howl, Howler} from 'howler';
 
         }
 
-        // Toggle pawn directions
+        // Toggle piece directions
+        // If chess, toggle pawn directions
+        // If checkers, toggle red and black piece moves.
+        //    Don't worry about changing kinged checker moves since they're identical regardless of color
 
-        let whitePawnMoves = brd.getInitialMoves().get('wP');
-        let blackPawnMoves = brd.getInitialMoves().get('bP');
+        if (this.receivedBoard.getGame() === "Chess") {
 
-        brd.setInitialMove('wP', blackPawnMoves);
-        brd.setInitialMove('bP', whitePawnMoves);
+          brd.setInitialMove('wP', brd.getInitialMoves().get('bP'));
+          brd.setInitialMove('bP', brd.getInitialMoves().get('wP'));
+
+        } else {
+
+          brd.setInitialMove('rC', brd.getInitialMoves().get('bC'));
+          brd.setInitialMove('bC', brd.getInitialMoves().get('rC'));
+        }
 
         this.receivedSquaresChange.emit(flippedSquares);
 
@@ -172,11 +181,11 @@ import {Howl, Howler} from 'howler';
       }
      
     
-      createSquareElement(i: number, x: number, y: number) {
+      createSquareElement(brd: Board, i: number, x: number, y: number) {
   
         let color = '';
       
-        if (this.game === "CHESS") {
+        if (brd.getGame() === "Chess") {
       
                 if (y < 3) {
                     color = 'b';
@@ -202,7 +211,7 @@ import {Howl, Howler} from 'howler';
                 this.createPiece(x, y, color, '');
               }
       
-        } else { // game = "CHECKERS"
+        } else { // game = "Checkers"
 
           if ((y === 1 || y === 3 || y === 7) && (x === 2 || x === 4 || x === 6 || x === 8)
           || (y === 2 || y === 4 || y === 6 || y === 8) && (x === 1 || x === 3 || x === 5 || x === 7)) {
@@ -239,9 +248,9 @@ import {Howl, Howler} from 'howler';
       isMovable(ev) {
           console.log("isMovable");
         // Ensure the piece in question's color matches the current user's color
-        if (this.game === "CHESS" && (this.getCurrentUserColor() === "White" && ev.target.id.match('b')) || 
+        if (this.receivedBoard.getGame() === "Chess" && (this.getCurrentUserColor() === "White" && ev.target.id.match('b')) || 
             (this.getCurrentUserColor() === "Black" && ev.target.id.match('w')) ||
-            this.game === "CHECKERS" && (this.getCurrentUserColor() === "Red" && ev.target.id.match('b')) || 
+            this.receivedBoard.getGame() === "Checkers" && (this.getCurrentUserColor() === "Red" && ev.target.id.match('b')) || 
             (this.getCurrentUserColor() === "Black" && ev.target.id.match('r'))
             ) {
 
@@ -520,7 +529,7 @@ import {Howl, Howler} from 'howler';
               + coords.getX() + ", " + coords.getY() + ")";
             
             // If piece is captured, add that to HTML
-            if(capturedPiece!='' && this.game === "CHESS") {
+            if(capturedPiece!='' && this.receivedBoard.getGame() === "Chess") {
               this.userMoveDiv[0].childNodes[0].innerHTML += "<br>Captured: " 
               + (this.getCurrentUserColor()==="White"? "Black" : "White")
               + " " + this.receivedBoard.getTypes().get(capturedPiece[1]);
@@ -781,9 +790,9 @@ import {Howl, Howler} from 'howler';
       
         console.log("Original square occupant is " + originalSquare.getOccupant().getId());
       
-        if (this.game === "CHESS" && (originalSquare.getOccupant().getId().match('w') && this.getCurrentUserColor() === "Black") ||
+        if (this.receivedBoard.getGame() === "Chess" && (originalSquare.getOccupant().getId().match('w') && this.getCurrentUserColor() === "Black") ||
               (originalSquare.getOccupant().getId().match('b') && this.getCurrentUserColor() === "White")
-              || (this.game === "CHECKERS" && (originalSquare.getOccupant().getId().match('r') && this.getCurrentUserColor() === "Black") ||
+              || (this.receivedBoard.getGame() === "Checkers" && (originalSquare.getOccupant().getId().match('r') && this.getCurrentUserColor() === "Black") ||
               (originalSquare.getOccupant().getId().match('b') && this.getCurrentUserColor() === "Red")))
               {
       
@@ -911,15 +920,12 @@ import {Howl, Howler} from 'howler';
             sound.play();
   
           // Based on color of old image, assign to appropriate div
-          if(capturedImage.match('w')) {
-            this.discard = document.getElementsByClassName("white-discards");
-            this.receivedBoard.setWhiteDiscards(capturedImage);
-          } else if (capturedImage.match('r')) {
-            this.discard = document.getElementsByClassName("white-discards");
-            this.receivedBoard.setWhiteDiscards(capturedImage);
+          if(capturedImage.match('w') || capturedImage.match('r')) {
+            this.discard = document.getElementsByClassName("first-discards");
+            this.receivedBoard.setFirstDiscards(capturedImage);
           } else {
-            this.discard = document.getElementsByClassName("black-discards");
-            this.receivedBoard.setBlackDiscards(capturedImage);
+            this.discard = document.getElementsByClassName("second-discards");
+            this.receivedBoard.setSecondDiscards(capturedImage);
           }
       
         } 
@@ -942,7 +948,7 @@ import {Howl, Howler} from 'howler';
 
         // Checkers: check if king is needed
 
-        if (this.game === "CHECKERS") {
+        if (this.receivedBoard.getGame() === "Checkers") {
 
           let pieceColor = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getId()[0];
 

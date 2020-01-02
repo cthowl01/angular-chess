@@ -21,6 +21,10 @@ export class User {
       this.name = name;
     }
 
+    setColor(color: string){
+      this.color = color;
+    }
+
     setIsCurrent(current: boolean){
       this.isCurrent = current;
     }

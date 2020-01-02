@@ -17,11 +17,15 @@ export class AppComponent {
   constructor(public dialog: MatDialog) {
   }
 
-  firstDiscardArea: string = "red-discards";
-  secondDiscardArea: string = "black-discards";
+  brd = new Board();
+
+  board = new BoardComponent();
+
+  firstDiscardArea: string = "first-discards";
+  secondDiscardArea: string = "second-discards";
   firstUser: string = "user-1";
   secondUser: string = "user-2";
-  generateButton: string = "Generate Board";
+  generateButton: string = "Generate " + this.brd.getGame() + " Board";
   flipButton: string = "Flip Board";
   userButton: string = "Edit User Names";
   gameButton: string = "Select Game Type";
@@ -31,10 +35,6 @@ export class AppComponent {
   chessImageExtension: string = ".png";
 
   squares :Square[] = [];
-
-  brd = new Board();
-
-  board = new BoardComponent();
 
   openUserDialog() {
     console.log("openUserDialog called");
@@ -56,12 +56,19 @@ export class AppComponent {
     console.log("openGameDialog called");
     const dialogRef = this.dialog.open(GameSelectionDialogComponent, {
       width: '250px',
-      data: {selectedGame: "CHESS", games: ['CHESS', 'CHECKERS']}
+      data: {selectedGame: this.brd.getGame(), games: ['Chess', 'Checkers']}
     });
 
     dialogRef.afterClosed().subscribe(result => {
       console.log('The dialog was closed');
-      this.board.game = result.selectedGame;
+      this.brd.setGame(result.selectedGame);
+      console.log('New game is now ' + result.selectedGame);
+      if (result.selectedGame === "Chess") {
+        this.brd.getUsers()[0].setColor("White");
+      } else if (result.selectedGame === "Checkers") {
+        this.brd.getUsers()[0].setColor("Red");
+      }
+      this.generateButton = "Generate " + this.brd.getGame() + " Board";
     });
   }
 
@@ -69,16 +76,12 @@ export class AppComponent {
     this.brd.setSquares($event);
   }
 
-  // receiveUsers($event){
-  //   //this.brd.setUser($event);
-  // }
-
   receiveInitialMoves(map: Map<string, number[]>){
     this.brd.setAllInitialMoves(map);
   }
 
   createBoard() {
-    this.brd.setSquares(this.board.createBoard());
+    this.brd.setSquares(this.board.createBoard(this.brd));
     this.board.printUserDisplay(this.brd.getUsers());
   }
 
@@ -86,6 +89,5 @@ export class AppComponent {
     this.brd.setSquares(this.board.flipBoard(this.brd));
     this.board.printUserDisplay(this.brd.getUsers());
   }
-
 
 }
