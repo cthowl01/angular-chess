@@ -1,5 +1,5 @@
-import Square from '../assets/Square';
-import User from '../assets/User';
+import Square from './Square';
+import User from './User';
 
 export class Board {
     constructor(private game?: string,
@@ -16,8 +16,9 @@ export class Board {
       private users?: User[],
       private originalSquareId?: string,
       private firstDiscards?: string[],
-      private secondDiscards?: string[],
-      private redDiscards?: string[]) {
+      private secondDiscards?: string[]
+      //private redDiscards?: string[]
+      ) {
       this.game = "Chess";
       this.types = new Map([[ 'K', 'King' ],[ 'Q', 'Queen' ], [ 'B', 'Bishop' ], [ 'N', 'Knight' ], 
                             [ 'R', 'Rook' ], [ 'P', 'Pawn' ], [ 'C', 'Checker' ]]);
@@ -175,6 +176,12 @@ export class Board {
 
     setSecondDiscards(img: string) {
       this.getSecondDiscards().push(img);
+    }
+
+    exchangeInitialMoves(firstPiece: string, secondPiece: string) {
+      let moveTemp = this.getInitialMoves().get(firstPiece);
+      this.setInitialMove(firstPiece, this.getInitialMoves().get(secondPiece));
+      this.setInitialMove(secondPiece, moveTemp);
     }
 
   }

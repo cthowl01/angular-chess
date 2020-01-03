@@ -1,7 +1,7 @@
 import { Component} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
-import Square from '../assets/Square';
-import Board from '../assets/Board';
+import Square from '../models/Square';
+import Board from '../models/Board';
 import { BoardComponent } from './board.component';
 import { UserDialogComponent } from './userdialog.component';
 import { GameSelectionDialogComponent } from './gameselectiondialog.component';
@@ -15,6 +15,8 @@ import { GameSelectionDialogComponent } from './gameselectiondialog.component';
 export class AppComponent {
 
   constructor(public dialog: MatDialog) {
+    // MOve initializations here and make private with get/set as needed
+    
   }
 
   brd = new Board();

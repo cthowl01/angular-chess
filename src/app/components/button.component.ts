@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
-import Board from 'src/assets/Board';
+import Board from '../models/Board';
 
     @Component({
       selector: 'app-button',

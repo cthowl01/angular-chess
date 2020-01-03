@@ -65,3 +65,24 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+
+
+
+TODOs:
+
+Keep styles in CSS files for specific components
+Change to SCSS; calculate sq size based on board size %, e.g.
+Components in separate folders; research where domain classes/models (e.g. Board.ts) should go (models subfolder?)
+
+PRIORITY: Limit files to ~200 lines; limit methods to 1-2 screens; separate based on functionality
+
+Research whether VSCode plugin could help generate getters/setters vs manual
+    get and set keywords
+
+Class properties should be read only by default; research what should be set upon init
+
+Look into who first method
+
+Isolate image data and functionality into image service
+
+Look at User component that can display itself and contain other user data

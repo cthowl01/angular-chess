@@ -9,7 +9,6 @@ export interface DialogData {
 
 @Component({
     selector: 'user-dialog',
-    //template: '<p> Pop Up </p>'
     templateUrl: 'userdialog.component.html',
   })
   
