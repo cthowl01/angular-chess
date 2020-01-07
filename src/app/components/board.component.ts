@@ -3,8 +3,8 @@ import Board from '../models/Board';
 import User from '../models/User';
 import Location from '../models/Location';
 import Square from '../models/Square';
-//import Occupant from '../models/Occupant';
 import {Howl} from 'howler';
+import Utils from '../utils'
 
     @Component({
       selector: 'app-board',
@@ -39,24 +39,14 @@ import {Howl} from 'howler';
         this.receivedHighlightsChange.emit(this.receivedBoard.getCurrentHighlights());
       }
 
-      isOccupiedByOpposite(id: string, x: number, y: number) {
-        let occupies = this.whatOccupies(x, y);
-        if (occupies) {
-          var occupier = occupies.getId();
-        }
-        return (occupies && occupier[0] !== id[0])? true : false;
+      // TO-DO: replace with hash map lookup
+      lookupByNetXY(netX: number, netY: number) {
+        let coords = Utils.getXYFromNet(netX, netY);
+        return Utils.getIndexFromXY(coords.getX(), coords.getY(), this.receivedBoard.getSquares());
       }
 
       allowDrop(event) {
         event.preventDefault();
-      }
-
-      getCurrentUserIndex() {
-        return this.receivedBoard.getUsers()[0].getIsCurrentUser()? 0 : 1;
-      }
-
-      getCurrentUserColor() {
-        return this.receivedBoard.getUsers()[this.getCurrentUserIndex()].getColor();
       }
 
       printUserDisplay(users: User[]) {
@@ -66,6 +56,7 @@ import {Howl} from 'howler';
         let user2Child = <HTMLElement> user2Div[0].childNodes[0];
         user1Child.innerHTML = (users[0].getIsCurrentUser()? "CURRENT:<br>": "") + users[0].getName() + " playing " + users[0].getColor() + " pieces";
         user2Child.innerHTML = (users[1].getIsCurrentUser()? "CURRENT:<br>": "") + users[1].getName() + " playing " + users[1].getColor() + " pieces"; 
+        return;
       }
 
       createPiece(x: number, y: number, color: string, piece: string) {
@@ -172,22 +163,24 @@ import {Howl} from 'howler';
       
       isMovable(ev) {
         // Ensure the piece in question's color matches the current user's color
-        if (this.receivedBoard.getGame() === "Chess" && (this.getCurrentUserColor() === "White" && ev.target.id.match('b')) || 
-            (this.getCurrentUserColor() === "Black" && ev.target.id.match('w')) ||
-            this.receivedBoard.getGame() === "Checkers" && (this.getCurrentUserColor() === "Red" && ev.target.id.match('b')) || 
-            (this.getCurrentUserColor() === "Black" && ev.target.id.match('r'))
-            ) {
+        if (this.receivedBoard.getGame() === "Chess" && 
+          (Utils.getCurrentUserColor(this.receivedBoard.getUsers()) === "White" && ev.target.id.match('b')) || 
+          (Utils.getCurrentUserColor(this.receivedBoard.getUsers()) === "Black" && ev.target.id.match('w')) ||
+          this.receivedBoard.getGame() === "Checkers" && 
+          (Utils.getCurrentUserColor(this.receivedBoard.getUsers()) === "Red" && ev.target.id.match('b')) || 
+          (Utils.getCurrentUserColor(this.receivedBoard.getUsers()) === "Black" && ev.target.id.match('r'))
+          ) {
 
-            let index = this.lookupByID(ev.target.id);
-            this.receivedBoard.setOriginalSquareId(this.receivedBoard.getSquares()[index].getOccupant().getId());
+          let index = Utils.lookupByID(ev.target.id, this.receivedBoard.getSquares());
+          this.receivedBoard.setOriginalSquareId(this.receivedBoard.getSquares()[index].getOccupant().getId());
 
-            // If index not already in highlighted array, add it
-            if (this.receivedBoard.getCurrentHighlights()[this.receivedBoard.getCurrentHighlights().length -1] != index) {
-              this.receivedBoard.addCurrentHighlight(index);
-              this.receivedBoard.getSquares()[index].setClass('square yellowSquare');
-            }
-            this.emitToParent();
-            return false;
+          // If index not already in highlighted array, add it
+          if (this.receivedBoard.getCurrentHighlights()[this.receivedBoard.getCurrentHighlights().length -1] != index) {
+            this.receivedBoard.addCurrentHighlight(index);
+            this.receivedBoard.getSquares()[index].setClass('square yellowSquare');
+          }
+          this.emitToParent();
+          return false;
         } else {
           this.receivedBoard.setOriginalSquareId(ev.target.id);
           return true;
@@ -198,56 +191,9 @@ import {Howl} from 'howler';
         this.unhighlight(ev);
       }
 
-      getXYFromNet(netX: number, netY: number) {
-        var tempX = netX - (1349/2);
-
-        if (tempX > -1 && tempX < 79) {
-          tempX = 5;
-        } else if (tempX > 79 && tempX < 159) {
-          tempX = 6;
-        } else if (tempX > 159 && tempX < 239) {
-          tempX = 7;
-        } else if (tempX > 239 && tempX < 319) {
-          tempX = 8;
-        } else if (tempX > -321 && tempX < -241) {
-          tempX = 1;
-        } else if (tempX > -241 && tempX < -161) {
-          tempX = 2;
-        } else if (tempX > -161 && tempX < -81) {
-          tempX = 3;
-        } else if (tempX > -81 && tempX < -1) {
-          tempX = 4;
-        }
-        return new Location(tempX, Math.ceil(netY / 80));
-      }
-
-      // TO-DO: replace with hash map lookup
-        lookupByID(id: string) {
-            for (let i=0;i<this.receivedBoard.getSquares().length;i++) {
-                if (this.receivedBoard.getSquares()[i].getOccupant().getId() === id) {
-                    return i;
-                }
-            }
-        }
-  
-         // TO-DO: replace with hash map lookup
-        lookupByNetXY(netX: number, netY: number) {
-            let coords = this.getXYFromNet(netX, netY);
-            return this.getIndexFromXY(coords.getX(), coords.getY());
-        }
-
-        getIndexFromXY(x: number, y: number) {
-          for (let i=0;i<this.receivedBoard.getSquares().length;i++) {
-            if (this.receivedBoard.getSquares()[i].getLocation().getX() === x && 
-                    (this.receivedBoard.getSquares()[i].getLocation().getY() === y)) {
-                    return i;
-                }
-            }
-        }
-
       highlightAvailableMoves(ev, idtemp: string) {
 
-        let originalSquareIndex = this.lookupByID(idtemp);
+        let originalSquareIndex = Utils.lookupByID(idtemp, this.receivedBoard.getSquares());
         let originalSquare: Square = this.receivedBoard.getSquares()[originalSquareIndex];
         let x = originalSquare.getLocation().getX();
         let y = originalSquare.getLocation().getY();
@@ -299,8 +245,9 @@ import {Howl} from 'howler';
           let temp_arr = [];
           
           for (let i=0;i<arr.length;i++) {
-              let occupies = this.whatOccupies(arr[i][0], arr[i][1]);
-              let oppositeColorMove = this.isOccupiedByOpposite(id, arr[i][0], arr[i][1]);
+              let occupies = Utils.whatOccupies(arr[i][0], arr[i][1], this.receivedBoard.getSquares());
+              let oppositeColorMove = Utils.isOccupiedByOpposite(id, arr[i][0], arr[i][1],
+                                                          this.receivedBoard.getSquares());
               if (!occupies || oppositeColorMove )
                   temp_arr.push(arr[i]);
               } 
@@ -327,7 +274,7 @@ import {Howl} from 'howler';
               newArr[1] = [x + nextDirection[0], y + nextDirection[1]];
              
               for (let i=0;i<2;i++) {
-                if (this.isOccupiedByOpposite(id,newArr[i][0], newArr[i][1])) {
+                if (Utils.isOccupiedByOpposite(id,newArr[i][0], newArr[i][1], this.receivedBoard.getSquares())) {
                   temp_arr.push([newArr[i][0], newArr[i][1]]);
                 }
               }
@@ -337,7 +284,7 @@ import {Howl} from 'howler';
       
           // Get the 0-63 index from the x/y coords
           for (let i=0;i<temp_arr.length; i++) {
-            this.ind_arr.push(this.convertXYToI(temp_arr[i][0], temp_arr[i][1]));
+            this.ind_arr.push(Utils.convertXYToI(temp_arr[i][0], temp_arr[i][1]));
           }
           
           // Replace the original square colors with "greenSquare" in the className
@@ -372,19 +319,6 @@ import {Howl} from 'howler';
           this.emitToParent();
           return;
         }
-
-          inRangeExclusive(i: number, min: number, max: number) {
-            return (i > min && i < max)? true : false;
-          }
-          
-          inRangeInclusive(i: number, min: number, max: number) {
-            return (i >= min && i <= max)? true : false;
-          }
-          
-          // Ensure x,y coords are on the 8x8 board
-          validCoords(x: number, y: number) {
-            return (this.inRangeExclusive(x, 0, 9) && this.inRangeExclusive(y, 0, 9)) ? true : false;
-          }
           
           printMove(ev, originalSquare: Square, originalPiece: string, capturedPiece: string) {
 
@@ -393,9 +327,10 @@ import {Howl} from 'howler';
     
             let netLocation:Location = new Location(Math.abs(ev.pageX  - ev.offsetX), 
                                                     Math.abs(ev.pageY - ev.offsetY));
-            let coords = this.getXYFromNet(netLocation.getX(), netLocation.getY());
+            let coords = Utils.getXYFromNet(netLocation.getX(), netLocation.getY());
           
-            this.userMoveDiv[0].childNodes[0].innerHTML = "Last Move: " + this.getCurrentUserColor() + " " 
+            this.userMoveDiv[0].childNodes[0].innerHTML = "Last Move: " + 
+            Utils.getCurrentUserColor(this.receivedBoard.getUsers()) + " " 
               // Use board.types hash map to lookup full name for piece based on initial in image name
               + this.receivedBoard.getTypes().get(originalPiece[1])
               + " from <br>(" + originalSquare.getLocation().getX() + ", " + originalSquare.getLocation().getY() + ") to (" 
@@ -403,7 +338,7 @@ import {Howl} from 'howler';
             
             if(capturedPiece!='') {
               this.userMoveDiv[0].childNodes[0].innerHTML += "<br>Captured: " 
-              + ((this.getCurrentUserColor()==="Black") ? 
+              + ((Utils.getCurrentUserColor(this.receivedBoard.getUsers())==="Black") ? 
                     ((this.receivedBoard.getGame() === "Chess") ? "White" : "Red") : "Black") + " " + 
                     this.receivedBoard.getTypes().get(capturedPiece[1]);
             }
@@ -425,12 +360,12 @@ import {Howl} from 'howler';
                   for (let i = popped[0]-1;  i <= popped[0] + 1; i++) {
           
                       // If both are in the range of valid coords and aren't the starting square:
-                      if (this.validCoords(i, j) && !(i === popped[0] && j === popped[1])) {
+                      if (Utils.validCoords(i, j) && !(i === popped[0] && j === popped[1])) {
                         // Only add to array if valid directional move for this piece
                         if (validMoves.includes(index)) {
 
                             if (id[1] === "P") {
-                              let occupied = this.whatOccupies(i, j);
+                              let occupied = Utils.whatOccupies(i, j, this.receivedBoard.getSquares());
                               if (!occupied) {
                                 tempMap.set(index, [[i, j]]);
                               } 
@@ -453,13 +388,15 @@ import {Howl} from 'howler';
               let popped = arr.pop();
 
               for (let i=0; i<validKnightMoves.length; i++) {
-                if (this.inRangeExclusive(popped[0]+validKnightMoves[i][0], 0, 9) 
-                  && this.inRangeExclusive(popped[1]+validKnightMoves[i][1], 0, 9)) {
+                if (Utils.inRangeExclusive(popped[0]+validKnightMoves[i][0], 0, 9) 
+                  && Utils.inRangeExclusive(popped[1]+validKnightMoves[i][1], 0, 9)) {
 
-                    let occupied = this.whatOccupies(popped[0]+validKnightMoves[i][0], 
-                                                      popped[1]+validKnightMoves[i][1]);
-                    let oppositeColorMove = this.isOccupiedByOpposite(id, 
-                      popped[0]+validKnightMoves[i][0], popped[1]+validKnightMoves[i][1]);
+                    let occupied = Utils.whatOccupies(popped[0]+validKnightMoves[i][0], 
+                                                      popped[1]+validKnightMoves[i][1],
+                                                      this.receivedBoard.getSquares());
+                    let oppositeColorMove = Utils.isOccupiedByOpposite(id, 
+                      popped[0]+validKnightMoves[i][0], popped[1]+validKnightMoves[i][1],
+                                                          this.receivedBoard.getSquares());
 
                     if (!occupied || (oppositeColorMove) ) {
                         tempMap.set(i, [[popped[0]+validKnightMoves[i][0], popped[1]+validKnightMoves[i][1]]]);
@@ -494,8 +431,9 @@ import {Howl} from 'howler';
         
                     // Set the starting square for this direction in the map to be returned before iterating
                     // in that direction
-                    let oppositeColorMove = this.isOccupiedByOpposite(id, newLoc.getX(), newLoc.getY());
-                    let occupied = this.whatOccupies(newLoc.getX(), newLoc.getY());
+                    let oppositeColorMove = Utils.isOccupiedByOpposite(id, newLoc.getX(), newLoc.getY(),
+                                                                        this.receivedBoard.getSquares());
+                    let occupied = Utils.whatOccupies(newLoc.getX(), newLoc.getY(), this.receivedBoard.getSquares());
 
                     // From key, get the direction as a letter e.g. for 1, directions.get[1] = 'N'
                     let newKey = this.receivedBoard.getDirections().get(key);
@@ -509,8 +447,9 @@ import {Howl} from 'howler';
                         if (id[1] != 'C' && id[1] != 'D') {
                           moveArray.push([newLoc.getX(), newLoc.getY()]);
                         } else {
-                          let occupied = this.whatOccupies(newLoc.getX() + coords[0], newLoc.getY() + coords[1]);
-                          if (this.validCoords(newLoc.getX() + coords[0], newLoc.getY() + coords[1]) 
+                          let occupied = Utils.whatOccupies(newLoc.getX() + coords[0], newLoc.getY() + coords[1],
+                                                                          this.receivedBoard.getSquares());
+                          if (Utils.validCoords(newLoc.getX() + coords[0], newLoc.getY() + coords[1]) 
                                 && !occupied) {
                             moveArray.push([newLoc.getX() + coords[0], newLoc.getY() + coords[1]]);
                           }
@@ -531,10 +470,12 @@ import {Howl} from 'howler';
                       // If the space is occupied with an opposite color piece, the move is still valid 
                       // but the flag should be set to terminate further moves in that direction
 
-                      let oppositeColorMove = this.isOccupiedByOpposite(id, newLoc.getX() + coords[0], newLoc.getY() + coords[1]);         
-                      let occupied = this.whatOccupies(newLoc.getX() + coords[0], newLoc.getY() + coords[1]);
+                      let oppositeColorMove = Utils.isOccupiedByOpposite(id, newLoc.getX() + coords[0], 
+                                            newLoc.getY() + coords[1], this.receivedBoard.getSquares());         
+                      let occupied = Utils.whatOccupies(newLoc.getX() + coords[0], newLoc.getY() + coords[1],
+                                                                              this.receivedBoard.getSquares());
                       
-                      if (this.inRangeExclusive(newLoc.getX() + coords[0], 0, 9) && this.inRangeExclusive(newLoc.getY() + coords[1], 0, 9)
+                      if (Utils.inRangeExclusive(newLoc.getX() + coords[0], 0, 9) && Utils.inRangeExclusive(newLoc.getY() + coords[1], 0, 9)
                           && (!occupied || 
                           oppositeColorMove)) { 
                           if (id[1] === 'P') {
@@ -572,43 +513,22 @@ import {Howl} from 'howler';
           return dMap;
         }
 
-        // This function either returns the contents of a square or false if empty, so it can also be used to check 
-        // whether a square is occupied or not
-        whatOccupies(x: number, y: number) {
-            for (let i=0;i<this.receivedBoard.getSquares().length;i++) {
-            if ((this.receivedBoard.getSquares())[i].getLocation().getX() === x && 
-                    (this.receivedBoard.getSquares())[i].getLocation().getY() === y) {
-                return ((this.receivedBoard.getSquares())[i].getOccupant().getId() !== "")? 
-                          (this.receivedBoard.getSquares())[i].getOccupant() : false;
-                }   
-            } 
-        }
-
-        convertXYToI(x: number, y: number) {
-            // Converts x/y pair to a square index (0-63)
-            return 8*(y-1) - 1 + x;
-        }
+        
 
       drop(ev) {
         ev.preventDefault();
 
-        // let originalSquareIndex = null,
-        //     originalSquare: Square = null,
-        //     newSquareIndex = null,
-        //     newSquare: Square = null;
         let id = "";
 
-        //Save captured piece data to pass to printMove()
-        // var capturedPiece = '';
-        // var capturedImage = '';
-
-        // var originalPiece = '';
-        var originalSquareIndex: number = this.lookupByID(this.receivedBoard.getOriginalSquareId());
+        var originalSquareIndex: number = Utils.lookupByID(this.receivedBoard.getOriginalSquareId(),
+                                                                    this.receivedBoard.getSquares());
         var originalSquare: Square = this.receivedBoard.getSquares()[originalSquareIndex];
  
         if (((originalSquare.getOccupant().getId().match('w') || originalSquare.getOccupant().getId().match('r')) 
-            && this.getCurrentUserColor() === "Black") || (originalSquare.getOccupant().getId().match('b') 
-            && (this.getCurrentUserColor() === "Red" || this.getCurrentUserColor() === "White")))
+            && Utils.getCurrentUserColor(this.receivedBoard.getUsers()) === "Black") || 
+            (originalSquare.getOccupant().getId().match('b') 
+            && (Utils.getCurrentUserColor(this.receivedBoard.getUsers()) === "Red" || 
+            Utils.getCurrentUserColor(this.receivedBoard.getUsers()) === "White")))
               {
               this.unhighlight(ev);
               return;
@@ -621,7 +541,7 @@ import {Howl} from 'howler';
         } 
       
           if (id !== "") {
-            var newSquareIndex: number = this.lookupByID(id);   
+            var newSquareIndex: number = Utils.lookupByID(id, this.receivedBoard.getSquares());   
           } else {
             // If new square is vacant, can't lookup by ID so will need to lookup by net coordinates
             newSquareIndex = this.lookupByNetXY(Math.abs(ev.pageX - ev.offsetX), 
@@ -642,7 +562,7 @@ import {Howl} from 'howler';
        
           // if newSquare's coordinates are in the highlighted array, set isValid to true
           for (var i = 0; i < this.receivedBoard.getCurrentHighlights().length; i++) {
-            if ( this.receivedBoard.getCurrentHighlights()[i] === this.convertXYToI(newSquare.getLocation().getX(), newSquare.getLocation().getY())) {
+            if ( this.receivedBoard.getCurrentHighlights()[i] === Utils.convertXYToI(newSquare.getLocation().getX(), newSquare.getLocation().getY())) {
               isValid = true;
             }
           }
@@ -675,7 +595,8 @@ import {Howl} from 'howler';
                 if ((absX === 2) && (absY === 2)) {
                   let capturedX = (newSquare.getLocation().getX() + originalSquare.getLocation().getX()) / 2;
                   let capturedY = (newSquare.getLocation().getY() + originalSquare.getLocation().getY()) / 2;
-                  let capturedSquareIndex = this.getIndexFromXY(capturedX, capturedY);
+                  let capturedSquareIndex = Utils.getIndexFromXY(capturedX, capturedY, 
+                                                      this.receivedBoard.getSquares());
 
                   capturedImage = this.receivedBoard.getSquares()[capturedSquareIndex].getOccupant().getSrc();
                   capturedPiece = this.receivedBoard.getSquares()[capturedSquareIndex].getOccupant().getId();

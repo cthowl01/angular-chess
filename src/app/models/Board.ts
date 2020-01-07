@@ -17,7 +17,6 @@ export class Board {
       private originalSquareId?: string,
       private firstDiscards?: string[],
       private secondDiscards?: string[]
-      //private redDiscards?: string[]
       ) {
       this.game = "Chess";
       this.types = new Map([[ 'K', 'King' ],[ 'Q', 'Queen' ], [ 'B', 'Bishop' ], [ 'N', 'Knight' ], 
