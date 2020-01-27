@@ -16,11 +16,12 @@ export class Board {
       private users?: User[],
       private originalSquareId?: string,
       private firstDiscards?: string[],
-      private secondDiscards?: string[]
+      private secondDiscards?: string[],
+      private initialPiecePerX?: string
       ) {
       this.game = "Chess";
       this.types = new Map([[ 'K', 'King' ],[ 'Q', 'Queen' ], [ 'B', 'Bishop' ], [ 'N', 'Knight' ], 
-                            [ 'R', 'Rook' ], [ 'P', 'Pawn' ], [ 'C', 'Checker' ]]);
+                            [ 'R', 'Rook' ], [ 'P', 'Pawn' ], [ 'C', 'Checker' ], [ 'D', 'Kinged Checker' ]]);
   
       this.numMoves = new Map([[ 'K', 1 ],[ 'Q', 7 ], [ 'B', 7 ], [ 'N', 1 ], 
                             [ 'R', 7 ], [ 'P', 1 ], [ 'C', 1 ], [ 'D', 1 ]]);
@@ -61,6 +62,19 @@ export class Board {
       this.originalSquareId = "";
       this.firstDiscards = [];
       this.secondDiscards = [];
+      this.initialPiecePerX = "RNBQKBNR"; 
+
+    // } else if (x === 1 || x === 8) {
+    //   this.createPiece(x, y, color, 'R');
+    // } else if (x === 2 || x === 7) {
+    //   this.createPiece(x, y, color, 'N');
+    // } else if (x === 3 || x === 6) {
+    //   this.createPiece(x, y, color, 'B');
+    // } else if (x === 4) {
+    //   this.createPiece(x, y, color, 'Q');
+    // } else if (x === 5) {
+    //   this.createPiece(x, y, color, 'K');
+    // } 
     }
 
     getGame() {
@@ -117,6 +131,10 @@ export class Board {
 
     getSecondDiscards() {
       return this.secondDiscards;
+    }
+
+    getInitialPiecePerX() {
+      return this.initialPiecePerX;
     }
 
     setGame(game) {

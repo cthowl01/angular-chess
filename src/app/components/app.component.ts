@@ -5,6 +5,7 @@ import Board from '../models/Board';
 import { BoardComponent } from './board.component';
 import { UserDialogComponent } from './userdialog.component';
 import { GameSelectionDialogComponent } from './gameselectiondialog.component';
+import Display from '../display';
 
 @Component({
   selector: 'app-root',
@@ -50,7 +51,7 @@ export class AppComponent {
       this.brd.getUsers()[0].setName(result.user1);
       this.brd.getUsers()[1].setName(result.user2);
 
-      this.board.printUserDisplay(this.brd.getUsers());
+      Display.printUserDisplay(this.brd.getUsers());
     });
   }
 
@@ -84,12 +85,12 @@ export class AppComponent {
 
   createBoard() {
     this.brd.setSquares(this.board.createBoard(this.brd));
-    this.board.printUserDisplay(this.brd.getUsers());
+    Display.printUserDisplay(this.brd.getUsers());
   }
 
   flipBoard() {
     this.brd.setSquares(this.board.flipBoard(this.brd));
-    this.board.printUserDisplay(this.brd.getUsers());
+    Display.printUserDisplay(this.brd.getUsers());
   }
 
 }

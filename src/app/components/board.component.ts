@@ -5,6 +5,7 @@ import Location from '../models/Location';
 import Square from '../models/Square';
 import {Howl} from 'howler';
 import Utils from '../utils'
+import Display from '../display';
 
     @Component({
       selector: 'app-board',
@@ -49,106 +50,28 @@ import Utils from '../utils'
         event.preventDefault();
       }
 
-      printUserDisplay(users: User[]) {
-        let user1Div = document.getElementsByClassName("user-1");
-        let user2Div = document.getElementsByClassName("user-2");
-        let user1Child = <HTMLElement> user1Div[0].childNodes[0];
-        let user2Child = <HTMLElement> user2Div[0].childNodes[0];
-        user1Child.innerHTML = (users[0].getIsCurrentUser()? "CURRENT:<br>": "") + users[0].getName() + " playing " + users[0].getColor() + " pieces";
-        user2Child.innerHTML = (users[1].getIsCurrentUser()? "CURRENT:<br>": "") + users[1].getName() + " playing " + users[1].getColor() + " pieces"; 
-        return;
-      }
-
-      createPiece(x: number, y: number, color: string, piece: string) {
-            this.squares.push(new Square(x, y, color, piece, (((x+y) % 2 == 0) ? 
-                                    'square brownSquare' : 'square whiteSquare')));
-            return;
-        }
-
       createBoard(brd: Board){
         var location:Location = new Location(1,1);
         for (var i=0;i<64;i++) {
-          this.createSquareElement(brd, i, location.getX(), location.getY());
+          this.squares = Utils.createSquareElement(brd, this.squares, location.getX(), location.getY());
          
+          location = Utils.incrementBoardSquare(location, i);
           // Iterate x and see if a new row is reached
-          location.setX(location.getX()+1);
-          if ((i+1) % 8 == 0) {
-            location.setX(1);
-            location.setY(location.getY()+1);
-          }
+          // location.setX(location.getX()+1);
+          // if ((i+1) % 8 == 0) {
+          //   location.setX(1);
+          //   location.setY(location.getY()+1);
+          // }
         }
           return this.squares;
         }
     
       flipBoard(brd: Board){
-
-        var flippedSquares: Square[] = [];
-
-        for(let i = 63; i >=0; i--) {
-            // New X and Y location needs to be 9 - current
-            // For top row pieces they end up on bottom row, e.g. 9 - 1 = 8 
-            this.squares[i].getLocation().setX(9 - this.squares[i].getLocation().getX());
-            this.squares[i].getLocation().setY(9 - this.squares[i].getLocation().getY());
-            flippedSquares.push(this.squares[i]);
-        }
-
-        // If chess, toggle pawn directions
-        // If non-kinged checkers, toggle red and black piece moves. Kinged don't need to change.
-        if (brd.getGame() === "Chess") {
-          brd.exchangeInitialMoves('wP', 'bP');
-        } else {
-          brd.exchangeInitialMoves('rC', 'bC');
-        }
-
-        this.receivedSquaresChange.emit(flippedSquares);
+        brd = Utils.flipSquares(brd);
+        this.receivedSquaresChange.emit(brd.getSquares());
         this.receivedInitialMovesChange.emit(brd.getInitialMoves());
-
-        this.squares = flippedSquares;
-
-        return flippedSquares;
-      }
-      
-      createSquareElement(brd: Board, i: number, x: number, y: number) {
-        let color = '';   
-        if (brd.getGame() === "Chess") {
-              if (y < 3) {
-                  color = 'b';
-              } else if (y > 6) {
-                  color = 'w';
-              } 
-              if (color != '') {
-                if (y === 2 || y === 7) {
-                  this.createPiece(x, y, color, 'P');
-                } else if (x === 1 || x === 8) {
-                  this.createPiece(x, y, color, 'R');
-                } else if (x === 2 || x === 7) {
-                  this.createPiece(x, y, color, 'N');
-                } else if (x === 3 || x === 6) {
-                  this.createPiece(x, y, color, 'B');
-                } else if (x === 4) {
-                  this.createPiece(x, y, color, 'Q');
-                } else if (x === 5) {
-                  this.createPiece(x, y, color, 'K');
-                } 
-              } else {
-                this.createPiece(x, y, color, '');
-              }
-        } else { // game = "Checkers"
-          if ((y === 1 || y === 3 || y === 7) && (x === 2 || x === 4 || x === 6 || x === 8)
-          || (y === 2 || y === 4 || y === 6 || y === 8) && (x === 1 || x === 3 || x === 5 || x === 7)) {
-              if (y < 4) {
-                color = 'b';
-              } else if (y > 5) {
-                color = 'r';
-              }
-            }          
-              if (color != '') {
-                  this.createPiece(x, y, color, 'C');
-              } else {
-                this.createPiece(x, y, color, '')
-              }
-        }
-        return;
+        this.squares = brd.getSquares();
+        return brd.getSquares();
       }
     
       drag(ev) {
@@ -259,7 +182,6 @@ import Utils from '../utils'
              
               // For the directions adjacent to straight direction (NW and NE for northbound; SW and SE for southbound):
               // if the square is occupied by an opposite color piece then the square can be highlighted as a valid move
-
               if (straight[0] === 1 && y > 1) {
                   var previousDirection = this.receivedBoard.getDirChanges().get("NW");
                   var nextDirection = this.receivedBoard.getDirChanges().get("NE");
@@ -320,30 +242,6 @@ import Utils from '../utils'
           return;
         }
           
-          printMove(ev, originalSquare: Square, originalPiece: string, capturedPiece: string) {
-
-            this.userMoveDiv = (this.receivedBoard.getUsers()[0].getIsCurrentUser()) ? 
-            document.getElementsByClassName("user-1-last-move") : document.getElementsByClassName("user-2-last-move");
-    
-            let netLocation:Location = new Location(Math.abs(ev.pageX  - ev.offsetX), 
-                                                    Math.abs(ev.pageY - ev.offsetY));
-            let coords = Utils.getXYFromNet(netLocation.getX(), netLocation.getY());
-          
-            this.userMoveDiv[0].childNodes[0].innerHTML = "Last Move: " + 
-            Utils.getCurrentUserColor(this.receivedBoard.getUsers()) + " " 
-              // Use board.types hash map to lookup full name for piece based on initial in image name
-              + this.receivedBoard.getTypes().get(originalPiece[1])
-              + " from <br>(" + originalSquare.getLocation().getX() + ", " + originalSquare.getLocation().getY() + ") to (" 
-              + coords.getX() + ", " + coords.getY() + ")";
-            
-            if(capturedPiece!='') {
-              this.userMoveDiv[0].childNodes[0].innerHTML += "<br>Captured: " 
-              + ((Utils.getCurrentUserColor(this.receivedBoard.getUsers())==="Black") ? 
-                    ((this.receivedBoard.getGame() === "Chess") ? "White" : "Red") : "Black") + " " + 
-                    this.receivedBoard.getTypes().get(capturedPiece[1]);
-            }
-          }
-
           fillInitial(arr: number[], currentPiece: string, id: string) {
 
             var tempMap = new Map();
@@ -384,25 +282,7 @@ import Utils from '../utils'
                 }             
              }
             } else {
-              let validKnightMoves: number[][] = this.receivedBoard.getKnightMoves();
-              let popped = arr.pop();
-
-              for (let i=0; i<validKnightMoves.length; i++) {
-                if (Utils.inRangeExclusive(popped[0]+validKnightMoves[i][0], 0, 9) 
-                  && Utils.inRangeExclusive(popped[1]+validKnightMoves[i][1], 0, 9)) {
-
-                    let occupied = Utils.whatOccupies(popped[0]+validKnightMoves[i][0], 
-                                                      popped[1]+validKnightMoves[i][1],
-                                                      this.receivedBoard.getSquares());
-                    let oppositeColorMove = Utils.isOccupiedByOpposite(id, 
-                      popped[0]+validKnightMoves[i][0], popped[1]+validKnightMoves[i][1],
-                                                          this.receivedBoard.getSquares());
-
-                    if (!occupied || (oppositeColorMove) ) {
-                        tempMap.set(i, [[popped[0]+validKnightMoves[i][0], popped[1]+validKnightMoves[i][1]]]);
-                    }              
-                }
-              }        
+              tempMap = Utils.fillInitialKnightMoves(arr, this.receivedBoard, id, tempMap);    
             }
 
           // Only the initial moves that are in a valid direction based on the subject piece will be returned
@@ -469,7 +349,6 @@ import Utils from '../utils'
                       // Determine if move is on the board, and either unoccupied or occupied by other color
                       // If the space is occupied with an opposite color piece, the move is still valid 
                       // but the flag should be set to terminate further moves in that direction
-
                       let oppositeColorMove = Utils.isOccupiedByOpposite(id, newLoc.getX() + coords[0], 
                                             newLoc.getY() + coords[1], this.receivedBoard.getSquares());         
                       let occupied = Utils.whatOccupies(newLoc.getX() + coords[0], newLoc.getY() + coords[1],
@@ -512,8 +391,6 @@ import Utils from '../utils'
           } // end for
           return dMap;
         }
-
-        
 
       drop(ev) {
         ev.preventDefault();
@@ -573,7 +450,7 @@ import Utils from '../utils'
             var capturedImage = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getSrc();
             var originalPiece = this.receivedBoard.getSquares()[originalSquareIndex].getOccupant().getId();
       
-            // Assign new coordinates to original square
+            // Assign original piece to new square
             this.receivedBoard.getSquares()[newSquareIndex].getOccupant().setId(originalSquare.getOccupant().getId());
             this.receivedBoard.getSquares()[newSquareIndex].getOccupant().setSrc(originalSquare.getOccupant().getSrc());
       
@@ -634,11 +511,11 @@ import Utils from '../utils'
           }    
         } 
    
-        this.printMove(ev, originalSquare, originalPiece, capturedPiece);
+        Display.printMove(ev, this.receivedBoard, originalSquare, originalPiece, capturedPiece);
 
         this.receivedBoard.toggleIsCurrentUser();
       
-        this.printUserDisplay(this.receivedBoard.getUsers());
+        Display.printUserDisplay(this.receivedBoard.getUsers());
 
         // Decrement pawn moves if applicable; can set to 1 without checking here
         if (this.receivedBoard.getOriginalSquareId().match('P')) {
@@ -651,13 +528,10 @@ import Utils from '../utils'
         // Checkers: check if king is needed
         if (this.receivedBoard.getGame() === "Checkers") {
           let pieceColor = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getId()[0];
+
           if ((newSquareIndex < 9  && pieceColor === 'r') || (newSquareIndex > 56  && pieceColor === 'b')) {
               // Change C to D in id and in src
-              let originalId = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getId();
-              let newId = originalId.replace("C", "D");
-              this.receivedBoard.getSquares()[newSquareIndex].getOccupant().setId(newId);
-              let originalSrc = this.receivedBoard.getSquares()[newSquareIndex].getOccupant().getSrc();
-              let newSrc = originalSrc.replace("C", "D");
+              let newSrc = Utils.kingMe(this.receivedBoard, newSquareIndex);
               this.receivedBoard.getSquares()[newSquareIndex].getOccupant().setSrc(newSrc);           
           }
         }
